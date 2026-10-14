@@ -77,7 +77,7 @@ process_metta_string(S, Results, Space, Mode) :- metta_string_forms(S, Forms),
                                            %declaration prepass: every function type declaration in the
                                            %file is visible to every definition in it, independent of order
                                            with_decl_notifications_batched(
-                                               forall(member(parsed(expression, FormStr, Line, Decl), ParsedForms),
+                                               forall(member(parsed(expression, FormStr, Line, Decl, _), ParsedForms),
                                                       with_form_location(Line, FormStr,
                                                                          precache_fn_type_decl(Space, Decl)))),
                                            %clause-BODY prepass, same rationale: the output-certificate
@@ -124,11 +124,13 @@ precache_pending_bodies(File, ParsedForms) :-
              assertz(pending_clause_body(File, F, N, Body)) )).
 
 %First pass to convert MeTTa to Prolog Terms and register functions:
-parse_form(form(S, L), parsed(T, S, L, Term)) :- sread(S, Term),
+parse_form(form(S, L), parsed(T, S, L, Term, Env)) :- sread(S, Term, Env),
+                                                 ignore(metta_on_form_parsed(L, S)),
                                                  ( Term = [=, [F|W], _], atom(F) -> length(W, N), Arity is N + 1,
                                                                                     register_function_signature(F, Arity), T=function
                                                                                   ; T=expression ).
-parse_form(runnable(S, L), parsed(runnable, S, L, Term)) :- sread(S, Term).
+parse_form(runnable(S, L), parsed(runnable, S, L, Term, Env)) :- sread(S, Term, Env),
+                                                                 ignore(metta_on_form_parsed(L, S)).
 
 %Report where a static type/determinism error was raised before rethrowing it,
 %and publish the same source location while declaration caching runs so the
@@ -145,11 +147,17 @@ with_form_location(Line, FormStr, Goal) :-
                 throw(error(E, Ctx)) )),
         erase(Ref)).
 
+%Publish the form's variable-name environment to any extension that wants it
+%(metta_with_form_env/2, src/ext_points.pl) for the duration of the translation.
+%With none loaded the soft cut falls through and the goal is called directly, so
+%the environment costs nothing on a normal run.
+with_form_env(Env, Goal) :- ( metta_with_form_env(Env, Goal) *-> true ; call(Goal) ).
+
 static_error_ctx(typecheck).
 static_error_ctx(determinism).
 
 %Second pass to compile / run / add the Terms:
-process_form(Space, _, parsed(expression, FormStr, Line, Term), []) :-
+process_form(Space, _, parsed(expression, FormStr, Line, Term, _Env), []) :-
                                                            with_form_location(
                                                                Line, FormStr,
                                                                with_unified_preanalyzed_form(
@@ -157,17 +165,20 @@ process_form(Space, _, parsed(expression, FormStr, Line, Term), []) :-
                                                            ( silent(true) -> true ; swrite(Term,STerm),
                                                                                     format("\e[33m--> metta sexpr -->~n\e[36m~w~n", [STerm]),
                                                                                     format("\e[33m^^^^^^^^^^^^^^^^^^^~n\e[0m") ).
-process_form(_, _, parsed(runnable, FormStr, Line, Term), Result) :- with_form_location(Line, FormStr,
-                                                                                     translate_expr([collapse, Term], Goals, Result)),
+process_form(_, _, parsed(runnable, FormStr, Line, Term, Env), Result) :- with_form_location(Line, FormStr,
+                                                                                     with_form_env(Env,
+                                                                                         translate_expr([collapse, Term], Goals, Result))),
                                                                   ( silent(true) -> true ; format("\e[33m--> metta runnable  -->~n\e[36m!~w~n\e[33m-->  prolog goal  -->\e[35m ~n", [FormStr]),
                                                                                            forall(member(G, Goals), portray_clause((:- G))),
                                                                                            format("\e[33m^^^^^^^^^^^^^^^^^^^^^^^~n\e[0m") ),
-                                                                  call_goals(Goals).
-process_form(Space, space_only, parsed(function, _, _, Term), []) :- !, add_sexp(Space, Term).
-process_form(Space, compile_functions, parsed(function, FormStr, Line, Term), []) :- add_sexp(Space, Term),
+                                                                  call_goals(Goals),
+                                                                  ignore(metta_on_form_result(Line, Result)).
+process_form(Space, space_only, parsed(function, _, _, Term, _Env), []) :- !, add_sexp(Space, Term).
+process_form(Space, compile_functions, parsed(function, FormStr, Line, Term, Env), []) :- add_sexp(Space, Term),
                                                                   with_form_location(Line, FormStr,
-                                                                                     translate_clause(Term, Clause, true,
-                                                                                                      Dependencies)),
+                                                                                     with_form_env(Env,
+                                                                                         translate_clause(Term, Clause, true,
+                                                                                                          Dependencies))),
                                                                   assertz(Clause, Ref),
                                                                   assertz(translated_from(Ref, Term)),
                                                                   Term = [=, [Fn|Args], _],
