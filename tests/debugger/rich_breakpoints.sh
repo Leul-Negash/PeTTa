@@ -20,7 +20,11 @@ strip_ansi() {
 run_metta() {
     file="$1"
     shift
-    swipl -q -s "$MAIN" -- "$ROOT_DIR/examples/$file" "$@" 2>&1 | strip_ansi
+    path="$ROOT_DIR/examples/$file"
+    # deliberately-broken debugger fixtures live outside examples/ so the
+    # example suites do not try to run them
+    [ -f "$path" ] || path="$ROOT_DIR/tests/debugger/fixtures/$file"
+    swipl -q -s "$MAIN" -- "$path" "$@" 2>&1 | strip_ansi
 }
 
 fail() {
