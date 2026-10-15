@@ -733,8 +733,7 @@ translate_expr([H0|T0], Expectation, Goals, Out) :-
                                                        translate_case(NormalCases, Kv, Expectation, Out, CaseGoal, KeyGoal),
                                                        translate_expr_to_conj(DefaultExpr, Expectation, ConD, DOut),
                                                        build_branch(ConD, DOut, Out, DefaultThen),
-                                                       Combined = ( (GkConj, CaseGoal) ;
-                                                                    \+ GkConj, DefaultThen ),
+                                                       case_with_empty(GkConj, CaseGoal, DefaultThen, Combined),
                                                        append([GsH, KeyGoal, [Combined]], Goals)
                                                      ; translate_expr(KeyExpr, Gk, Kv),
                                                        translate_case(PairsExpr, Kv, Expectation, Out, IfGoal, KeyGoal),
@@ -1383,7 +1382,7 @@ cmp_native('!=', A, B, (A \== B)).
 %source expressions where the caller has them, otherwise the values AVs.
 build_call_or_partial(Fun, Src, AVs, Out, Inner, Extra, Goals) :- ( maybe_specialize_call(Fun, AVs, Out, Goal)
                                                                     -> commit_call(Fun, Src, AVs, Out, Goal, Goal1),
-                                                                       wrap_ext_call(Fun, Src, AVs, catch(call(Goal1), _, fail), Wrapped),
+                                                                       wrap_ext_call(Fun, Src, AVs, Goal1, Wrapped),
                                                                        append(Inner, [Wrapped|Extra], Goals)
                                                                      ; build_direct_call(Fun, Src, AVs, Out, Inner, Extra, Goals) ).
 
@@ -1496,6 +1495,14 @@ build_isolated_branch(Con, Val, Out, Goal) :-
          ( Con == true -> Goal = (Out = Val)
          ; Goal = (Con, Out = Val) )
     ; build_branch(Con, Val, Out, Goal) ).
+
+%The key of a case with an Empty case runs once, and Empty only if the key yields no value. Soft-cut does exactly
+%this, but would make a cut inside the key local to it; so a key containing a cut instead records in a fresh
+%non-backtrackable flag whether it yielded a value, and its cut still commits the clause:
+case_with_empty(GkConj, CaseGoal, DefaultThen, ( GkConj *-> CaseGoal ; DefaultThen )) :- \+ ( sub_term(G, GkConj), G == ! ), !.
+case_with_empty(GkConj, CaseGoal, DefaultThen, ( functor(Seen, seen, 1),
+                                                 ( GkConj, nb_setarg(1, Seen, true), CaseGoal
+                                                 ; arg(1, Seen, S), var(S), DefaultThen ) )).
 
 % An if join is a choice flow, not a binding flow (note_candidates/2 would
 % specialize Out's open candidate): route the candidates through a fresh
