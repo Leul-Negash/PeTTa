@@ -6,4 +6,4 @@
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
 
-exec swipl --stack_limit=8g -q -g dap_server "$SCRIPT_DIR/src/dap_server.pl" -- "$@"
+exec swipl --stack_limit=8g -q -g dap_server "$SCRIPT_DIR/src/debugger/dap_server.pl" -- "$@"

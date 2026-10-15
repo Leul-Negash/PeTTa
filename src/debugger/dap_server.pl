@@ -18,7 +18,7 @@
 % Breakpoint pauses arrive here through the dap_on_pause/0 hook called by
 % maybe_pause_on_breakpoint/0 when dap_mode/0 is set.
 
-:- ensure_loaded(metta).
+:- ensure_loaded('../metta').
 :- use_module(library(http/json)).
 
 :- dynamic working_dir/1.   % also asserted by main.pl; declare so dap_run can test it

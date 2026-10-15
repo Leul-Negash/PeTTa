@@ -38,7 +38,7 @@ fail() {
 }
 
 # 1. watch shorthand: compact indented trace.
-watch=$(sh "$ROOT_DIR/debug.sh" watch "$ROOT_DIR/examples/fib_buggy.metta" fib 2>&1 | strip_ansi)
+watch=$(sh "$ROOT_DIR/debug.sh" watch "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" fib 2>&1 | strip_ansi)
 
 printf '%s\n' "$watch" | grep -E '^ENTER  \(fib 10\)' >/dev/null \
     || fail "watch did not show the top-level ENTER (fib 10) at column 0"

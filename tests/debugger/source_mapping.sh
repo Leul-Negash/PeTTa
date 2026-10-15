@@ -18,7 +18,11 @@ strip_ansi() {
 run_metta() {
     file="$1"
     shift
-    swipl -q -s "$MAIN" -- "$ROOT_DIR/examples/$file" "$@" 2>&1 | strip_ansi
+    path="$ROOT_DIR/examples/$file"
+    # deliberately-broken debugger fixtures live outside examples/ so the
+    # example suites do not try to run them
+    [ -f "$path" ] || path="$ROOT_DIR/tests/debugger/fixtures/$file"
+    swipl -q -s "$MAIN" -- "$path" "$@" 2>&1 | strip_ansi
 }
 
 fail() {
@@ -26,7 +30,7 @@ fail() {
     exit 1
 }
 
-# examples/fib_buggy.metta: the function clause is form #1 on line 1; the
+# tests/debugger/fixtures/fib_buggy.metta: the function clause is form #1 on line 1; the
 # !(test (fib 10) ...) runnable is form #2 on line 7. Recursive fib calls come
 # from the clause (line 1); the top-level call comes from the runnable (line 7).
 # (fib_buggy is small/fast and exercises the same compiled mapping as fib.metta.)

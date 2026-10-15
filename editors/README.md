@@ -43,7 +43,7 @@ function breakpoint, runs a file, and prints the stack + MeTTa variables at each
 stop — the same exchange an editor performs, but in your terminal:
 
 ```bash
-python3 editors/dap_client.py examples/fib_buggy.metta fib 4
+python3 editors/dap_client.py tests/debugger/fixtures/fib_buggy.metta fib 4
 ```
 
 `tests/debugger/dap.sh` is a second worked example (it also exercises `evaluate`
@@ -62,7 +62,7 @@ or `npm install` is needed.
 2. Press **F5** ("Run Extension"). A second VS Code window opens (the Extension
    Development Host) with the extension active.
 3. In that window, open the PeTTa repo folder and open a `.metta` file, e.g.
-   `examples/fib_buggy.metta`.
+   `tests/debugger/fixtures/fib_buggy.metta`.
 4. Set a breakpoint one of two ways:
    - click the gutter on the function's definition line (line 1 of `fib_buggy.metta`); or
    - in the **Run and Debug** view, add a **Function Breakpoint** named `fib`.

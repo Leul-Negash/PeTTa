@@ -1,3 +1,5 @@
+:- ensure_loaded(tracing).
+
 :- use_module(library(http/json)). % json_write_dict/3 for --debug-format=json
 
 :- dynamic debug_category/1.
@@ -1790,16 +1792,16 @@ print_debug_help :-
     format("Categories:~n", []),
     forall((debug_category_name(Category), debug_category_label(Category, Label)), format("  ~w~n", [Label])),
     format("~nExamples:~n", []),
-    format("  sh debug.sh watch examples/fib_buggy.metta fib~n", []),
+    format("  sh debug.sh watch tests/debugger/fixtures/fib_buggy.metta fib~n", []),
     format("  sh debug.sh examples/fib.metta --debug=runtime~n", []),
     format("  sh debug.sh examples/fib.metta --debug=runtime-leaf --debug-goal=fib~n", []),
     format("  sh debug.sh examples/fib.metta --debug=runtime-prolog --debug-goal=fib --silent~n", []),
     format("  sh debug.sh examples/fib.metta --debug=runtime --debug-depth=3 --debug-max-events=20 --silent~n", []),
     format("  sh debug.sh examples/fib.metta --debug-break=fib --debug-goal=fib --silent~n", []),
-    format("  sh debug.sh examples/fib_buggy.metta --debug-break-if=fib:arg1<0 --debug-goal=fib --silent~n", []),
-    format("  sh debug.sh examples/fib_buggy.metta --debug-break-if=fib:result=0 --debug-break-once --debug-goal=fib --silent~n", []),
-    format("  sh debug.sh examples/fib_buggy.metta --debug-break-if='fib:arg1<0|result=0' --debug-break-skip=1 --debug-goal=fib --silent~n", []),
-    format("  sh debug.sh examples/fib_buggy.metta --debug-break-if=fib:arg1=2&result=0 --debug-break-once --debug-goal=fib --silent~n", []),
+    format("  sh debug.sh tests/debugger/fixtures/fib_buggy.metta --debug-break-if=fib:arg1<0 --debug-goal=fib --silent~n", []),
+    format("  sh debug.sh tests/debugger/fixtures/fib_buggy.metta --debug-break-if=fib:result=0 --debug-break-once --debug-goal=fib --silent~n", []),
+    format("  sh debug.sh tests/debugger/fixtures/fib_buggy.metta --debug-break-if='fib:arg1<0|result=0' --debug-break-skip=1 --debug-goal=fib --silent~n", []),
+    format("  sh debug.sh tests/debugger/fixtures/fib_buggy.metta --debug-break-if=fib:arg1=2&result=0 --debug-break-once --debug-goal=fib --silent~n", []),
     format("  sh debug.sh examples/fib.metta --debug=runtime --debug-output=trace.log --silent~n", []),
     format("  sh debug.sh examples/fib.metta --debug=source,parse,translate,result --silent~n", []),
     format("  sh debug.sh examples/spaces.metta --debug=space-match-fail~n", []).

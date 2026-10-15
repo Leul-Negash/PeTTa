@@ -15,10 +15,10 @@ sh debug.sh watch your_file.metta
 sh debug.sh watch your_file.metta yourFunction
 ```
 
-For example, on the intentionally broken `examples/fib_buggy.metta`:
+For example, on the intentionally broken `tests/debugger/fixtures/fib_buggy.metta`:
 
 ```bash
-sh debug.sh watch examples/fib_buggy.metta fib
+sh debug.sh watch tests/debugger/fixtures/fib_buggy.metta fib
 ```
 
 ```text
@@ -154,10 +154,10 @@ OK     (match &self (set 1 b) (set 1 b)) => (set 1 b)
 
 If a function may be calling the wrong built-in, trace the operator directly.
 
-Example from the intentionally broken [examples/add_buggy.metta](./examples/add_buggy.metta):
+Example from the intentionally broken [tests/debugger/fixtures/add_buggy.metta](./tests/debugger/fixtures/add_buggy.metta):
 
 ```bash
-sh debug.sh examples/add_buggy.metta --debug=runtime --debug-goal=- --silent
+sh debug.sh tests/debugger/fixtures/add_buggy.metta --debug=runtime --debug-goal=- --silent
 ```
 
 This makes the suspicious call explicit:
@@ -171,10 +171,10 @@ OK     (- 7 3) => 4
 
 Use a conditional breakpoint to stop on impossible states.
 
-Example from [examples/fib_buggy.metta](./examples/fib_buggy.metta):
+Example from [tests/debugger/fixtures/fib_buggy.metta](./tests/debugger/fixtures/fib_buggy.metta):
 
 ```bash
-sh debug.sh examples/fib_buggy.metta --debug-break-if='fib:arg1<0' --debug-break-once --debug-goal=fib --silent
+sh debug.sh tests/debugger/fixtures/fib_buggy.metta --debug-break-if='fib:arg1<0' --debug-break-once --debug-goal=fib --silent
 ```
 
 This stops the first time recursion reaches a negative input.
@@ -184,7 +184,7 @@ This stops the first time recursion reaches a negative input.
 Break on a suspicious return value:
 
 ```bash
-sh debug.sh examples/fib_buggy.metta --debug-break-if='fib:result=0' --debug-break-once --debug-goal=fib --silent
+sh debug.sh tests/debugger/fixtures/fib_buggy.metta --debug-break-if='fib:result=0' --debug-break-once --debug-goal=fib --silent
 ```
 
 Result conditions only trigger on successful returns.
@@ -265,8 +265,8 @@ sh debug.sh examples/he_error.metta --debug-break-error --debug-break-once --sil
 Examples:
 
 ```bash
-sh debug.sh examples/fib_buggy.metta --debug-break-if='fib:arg1=2&result=0' --debug-break-once --debug-goal=fib --silent
-sh debug.sh examples/fib_buggy.metta --debug-break-if='fib:arg1<0|result=0' --debug-break-skip=1 --debug-break-once --debug-goal=fib --silent
+sh debug.sh tests/debugger/fixtures/fib_buggy.metta --debug-break-if='fib:arg1=2&result=0' --debug-break-once --debug-goal=fib --silent
+sh debug.sh tests/debugger/fixtures/fib_buggy.metta --debug-break-if='fib:arg1<0|result=0' --debug-break-skip=1 --debug-break-once --debug-goal=fib --silent
 ```
 
 ## Noise control

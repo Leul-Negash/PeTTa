@@ -7,28 +7,33 @@ TRACE_FILE="$ROOT_DIR/debug_trace_test.log"
 rm -f "$TRACE_FILE"
 
 output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/chain.metta" --debug=runtime --debug-goal=+ 2>&1)
-prolog_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/chain.metta" --debug=runtime-prolog --debug-goal=+ --silent 2>&1)
+# Arithmetic builtins are compiled to native is/2 (arith_inline, src/translator.pl)
+# and constant-folded when both operands are literals, so there is no call left to
+# trace. Trace a user-defined function instead.
+trace_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/add_buggy.metta" --debug=runtime --debug-goal=add-two 2>&1 || true)
+prolog_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/add_buggy.metta" --debug=runtime-prolog --debug-goal=add-two --silent 2>&1 || true)
 help_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- --debug-help 2>&1)
-file_output_console=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/fib_buggy.metta" --debug=runtime --debug-goal=fib --debug-max-events=8 --debug-output="$TRACE_FILE" --silent 2>&1 || true)
+file_output_console=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" --debug=runtime --debug-goal=fib --debug-max-events=8 --debug-output="$TRACE_FILE" --silent 2>&1 || true)
 spaces_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/spaces.metta" 2>&1)
 space_debug_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/spaces.metta" --debug=space --silent 2>&1)
-add_buggy_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/add_buggy.metta" --debug=runtime --debug-goal=add-two --silent 2>&1 || true)
-add_buggy_op_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/add_buggy.metta" --debug=runtime --debug-goal=- --silent 2>&1 || true)
-depth_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/fib_buggy.metta" --debug=runtime --debug-goal=fib --debug-depth=2 --silent 2>&1 || true)
-limit_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/fib_buggy.metta" --debug=runtime --debug-goal=fib --debug-max-events=6 --silent 2>&1 || true)
-break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/fib_buggy.metta" --debug-break=fib --debug-goal=fib --debug-depth=2 --silent 2>&1 || true)
-cond_break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/fib_buggy.metta" --debug-break-if='fib:arg1<0' --debug-goal=fib --silent 2>&1 || true)
-break_once_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/fib_buggy.metta" --debug-break-if='fib:arg1<0' --debug-break-once --debug-goal=fib --silent 2>&1 || true)
-result_break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/fib_buggy.metta" --debug-break-if='fib:result=0' --debug-break-once --debug-goal=fib --silent 2>&1 || true)
-and_break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/fib_buggy.metta" --debug-break-if='fib:arg1=2&result=0' --debug-break-once --debug-goal=fib --silent 2>&1 || true)
-or_break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/fib_buggy.metta" --debug-break-if='fib:arg1<0|result=0' --debug-break-once --debug-goal=fib --silent 2>&1 || true)
-skip_break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/examples/fib_buggy.metta" --debug-break-if='fib:arg1<0|result=0' --debug-break-skip=1 --debug-break-once --debug-goal=fib --silent 2>&1 || true)
+add_buggy_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/add_buggy.metta" --debug=runtime --debug-goal=add-two --silent 2>&1 || true)
+add_buggy_op_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/add_buggy.metta" --debug=runtime --debug-goal=add-two --silent 2>&1 || true)
+depth_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" --debug=runtime --debug-goal=fib --debug-depth=2 --silent 2>&1 || true)
+limit_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" --debug=runtime --debug-goal=fib --debug-max-events=6 --silent 2>&1 || true)
+break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" --debug-break=fib --debug-goal=fib --debug-depth=2 --silent 2>&1 || true)
+cond_break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" --debug-break-if='fib:arg1<0' --debug-goal=fib --silent 2>&1 || true)
+break_once_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" --debug-break-if='fib:arg1<0' --debug-break-once --debug-goal=fib --silent 2>&1 || true)
+result_break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" --debug-break-if='fib:result=0' --debug-break-once --debug-goal=fib --silent 2>&1 || true)
+and_break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" --debug-break-if='fib:arg1=2&result=0' --debug-break-once --debug-goal=fib --silent 2>&1 || true)
+or_break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" --debug-break-if='fib:arg1<0|result=0' --debug-break-once --debug-goal=fib --silent 2>&1 || true)
+skip_break_output=$(swipl -q -s "$ROOT_DIR/src/main.pl" -- "$ROOT_DIR/tests/debugger/fixtures/fib_buggy.metta" --debug-break-if='fib:arg1<0|result=0' --debug-break-skip=1 --debug-break-once --debug-goal=fib --silent 2>&1 || true)
 
 strip_ansi() {
     sed 's/\x1b\[[0-9;]*m//g'
 }
 
 clean_output=$(printf '%s\n' "$output" | strip_ansi)
+clean_trace_output=$(printf '%s\n' "$trace_output" | strip_ansi)
 clean_prolog_output=$(printf '%s\n' "$prolog_output" | strip_ansi)
 clean_help_output=$(printf '%s\n' "$help_output" | strip_ansi)
 clean_file_output_console=$(printf '%s\n' "$file_output_console" | strip_ansi)
@@ -47,14 +52,14 @@ clean_and_break_output=$(printf '%s\n' "$and_break_output" | strip_ansi)
 clean_or_break_output=$(printf '%s\n' "$or_break_output" | strip_ansi)
 clean_skip_break_output=$(printf '%s\n' "$skip_break_output" | strip_ansi)
 
-printf '%s\n' "$clean_output" | grep -F "stack: (+ 2 4)" >/dev/null
-printf '%s\n' "$clean_output" | grep -F "stack: (+ 4 8)" >/dev/null
-printf '%s\n' "$clean_output" | grep -F "ENTER  (+ 2 4)" >/dev/null
-printf '%s\n' "$clean_output" | grep -F "OK     (+ 4 8) => 12" >/dev/null
+printf '%s\n' "$clean_trace_output" | grep -F "stack: (add-two 7 3)" >/dev/null
+printf '%s\n' "$clean_trace_output" | grep -F "ENTER  (add-two 7 3)" >/dev/null
+printf '%s\n' "$clean_trace_output" | grep -F "OK     (add-two 7 3) => 4" >/dev/null
+printf '%s\n' "$clean_trace_output" | grep -F "#2 line 4 compiled" >/dev/null
 printf '%s\n' "$clean_output" | grep -F "is 18, should 18. ✅" >/dev/null
 printf '%s\n' "$clean_output" | grep -F "is 12, should 12. ✅" >/dev/null
-printf '%s\n' "$clean_prolog_output" | grep -F "[#compiled] ENTER  (+ 2 4)" >/dev/null
-printf '%s\n' "$clean_prolog_output" | grep -F ":- +(2, 4, _)." >/dev/null
+printf '%s\n' "$clean_prolog_output" | grep -F "ENTER  (add-two 7 3)" >/dev/null
+printf '%s\n' "$clean_prolog_output" | grep -F ":- 'add-two'(7, 3, _)." >/dev/null
 printf '%s\n' "$clean_help_output" | grep -F "PeTTa Debugger" >/dev/null
 printf '%s\n' "$clean_help_output" | grep -F "runtime-leaf" >/dev/null
 printf '%s\n' "$clean_help_output" | grep -F "runtime-prolog" >/dev/null
@@ -82,8 +87,8 @@ printf '%s\n' "$clean_space_debug_output" | grep -F "result: (bar a)" >/dev/null
 printf '%s\n' "$clean_space_debug_output" | grep -F "result: (bar b)" >/dev/null
 printf '%s\n' "$clean_add_buggy_output" | grep -F "ENTER  (add-two 7 3)" >/dev/null
 printf '%s\n' "$clean_add_buggy_output" | grep -F "OK     (add-two 7 3) => 4" >/dev/null
-printf '%s\n' "$clean_add_buggy_op_output" | grep -F "ENTER  (- 7 3)" >/dev/null
-printf '%s\n' "$clean_add_buggy_op_output" | grep -F "OK     (- 7 3) => 4" >/dev/null
+printf '%s\n' "$clean_add_buggy_op_output" | grep -F "ENTER  (add-two 7 3)" >/dev/null
+printf '%s\n' "$clean_add_buggy_op_output" | grep -F "OK     (add-two 7 3) => 4" >/dev/null
 printf '%s\n' "$clean_depth_output" | grep -F "ENTER  (fib 10)" >/dev/null
 printf '%s\n' "$clean_depth_output" | grep -F "ENTER  (fib 9)" >/dev/null
 if printf '%s\n' "$clean_depth_output" | grep -F "stack: (fib 10) → (fib 9) →" >/dev/null; then exit 1; fi

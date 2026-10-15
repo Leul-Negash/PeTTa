@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# M7 regression: drive a full DAP session against src/dap_server.pl over stdio
+# M7 regression: drive a full DAP session against src/debugger/dap_server.pl over stdio
 # and check the framed JSON responses/events. Exercises initialize, function
 # breakpoints, launch+configurationDone, the stopped event, stackTrace, scopes,
 # variables (MeTTa $variable inspection), evaluate (REPL in the paused frame),
@@ -9,7 +9,7 @@
 set -eu
 
 ROOT_DIR=$(cd -- "$(dirname -- "$0")/../.." && pwd)
-DAP="$ROOT_DIR/src/dap_server.pl"
+DAP="$ROOT_DIR/src/debugger/dap_server.pl"
 
 INPUT=$(mktemp /tmp/petta_dap_in_XXXXXX)
 OUTPUT=$(mktemp /tmp/petta_dap_out_XXXXXX)
